@@ -1,0 +1,27 @@
+{
+  "name": "comfydb",
+  "version": "1.0.0",
+  "description": "Comfiest Way To Use A Database!",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/instafluff/ComfyDB.git"
+  },
+  "keywords": [
+    "ComfyDB",
+    "Instafluff"
+  ],
+  "author": "Instafluff",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/instafluff/ComfyDB/issues"
+  },
+  "homepage": "https://github.com/instafluff/ComfyDB#readme",
+  "dependencies": {
+    "mongodb": "^3.2.7"
+  }
+}
