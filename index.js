@@ -18,7 +18,7 @@ client.connect(function(err) {
   console.log("Connected successfully to server");
 
   const db = client.db(dbName);
-  
+
   insertDocuments(db, function() {
     client.close();
   });
@@ -38,3 +38,66 @@ const insertDocuments = function(db, callback) {
     callback(result);
   });
 }
+
+const COMPARE = {
+  Equal: "=",
+  NotEqual: "!",
+  LessThan: "<",
+  LessThanOrEqual: "<=",
+  GreaterThan: ">",
+  GreaterThanOrEqual: ">=",
+  StartsWith: "^",
+  EndsWith: "$",
+  Contains: "_",
+  True: "1",
+  False: "0"
+};
+
+let comfyDB = {
+  Collection: {
+    Create: function( name ) {},
+    List: function() {},
+    Delete: function( name ) {},
+  },
+  Is: COMPARE,
+  Data: {
+    Set: function( collection, id, data, overwrite = true ) {
+      // check if key is a single string or an array for batch update
+      // TODO: Add Objects, tagging with ID and timestamp for create/update
+    },
+    Delete: function( collection, id ) {
+      // check if key is a single string or an array for batch update
+      // TODO: Delete objects
+    },
+    Increment: function( collection, id, key, amount ) {},
+    Decrement: function( collection, id, key, amount ) {
+      comfyDB.Increment( collection, id, key, -amount );
+    },
+    Find: function( collection, options ) {
+
+    },
+    FindById: function( collection, id ) {
+      comfyDB.Find( { id });
+    },
+    FindByKey: function( collection, key, compare = COMPARE.True, value = "", count = 100, descending = true ) {
+      comfyDB.Find( {
+        key,
+        compare,
+        value,
+        count,
+        isOrderDescending: descending
+      });
+    },
+    FindLatest: function( collection, count = 100 ) {
+      comfyDB.Find( {
+        key: "updated",
+        count,
+        isOrderDescending: true
+      } );
+    },
+    Count: function( collection, key, compare = COMPARE.True, value = "" )
+    },
+  }
+};
+
+modules.export = comfyDB;
