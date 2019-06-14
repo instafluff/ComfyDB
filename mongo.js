@@ -9,7 +9,19 @@ module.exports = function () {
     if( err.code !== 'EEXIST' ) throw err;
   }
 
-  const mongoProc = spawn("mongodb\\win\\mongod.exe", [ "-dbpath", "./data" ], {
+  var mongoPath = "mongodb\\win\\mongod.exe";
+  switch( process.platform ) {
+    case "win32": // Windows
+      mongoPath = "mongodb\\win\\mongod.exe";
+      break;
+    case "darwin": // OSX
+      mongoPath = "mongodb/mac/mongod";
+      break;
+    default:
+      throw new Error( "Unsupported Platform: " + process.platform );
+  }
+
+  const mongoProc = spawn( mongoPath, [ "-dbpath", "./data" ], {
     shell: true
   });
 

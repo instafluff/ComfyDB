@@ -95,9 +95,8 @@ let comfyDB = {
         isOrderDescending: true
       } );
     },
-    Count: function( collection, key, compare = COMPARE.True, value = "" )
-    },
-  }
+    Count: function( collection, key, compare = COMPARE.True, value = "" ) {},
+  },
 };
 
-modules.export = comfyDB;
+module.exports = comfyDB;
