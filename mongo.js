@@ -1,5 +1,7 @@
 const fs = require('fs');
 const spawn = require("child_process").spawn;
+const EventEmitter = require('events');
+class MongoLocal extends EventEmitter {};
 
 module.exports = function () {
   try {
@@ -8,6 +10,8 @@ module.exports = function () {
   catch( err ) {
     if( err.code !== 'EEXIST' ) throw err;
   }
+
+  const mongo = new MongoLocal();
 
   var mongoPath = "mongodb\\win\\mongod.exe";
   switch( process.platform ) {
@@ -26,16 +30,24 @@ module.exports = function () {
   });
 
   mongoProc.stdout.on( "data", ( data ) => {
-    // console.log( `OUT: ${data}` );
+    // console.log( `OUT: ${data.toString("utf8")}` );
+    mongo.emit( "output", data.toString( "utf8" ) );
+    if( data.includes( "waiting for connections on" ) ) {
+      mongo.emit( "ready" );
+    }
   });
 
   mongoProc.stderr.on( "data", ( data ) => {
     // console.log( `ERR: ${data}` );
+    mongo.emit( "error", data.toString( "utf8" ) );
   });
 
   mongoProc.on( "close", ( code ) => {
-    console.log( `EXIT: ${code}` );
+    mongo.emit( "exit", code );
+    // console.log( `EXIT: ${code}` );
   });
 
-  return mongoProc;
+  process.on( "exit", () => mongoProc.kill( "SIGINT" ) );
+
+  return mongo;
 }

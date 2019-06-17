@@ -1,5 +1,3 @@
-const mongo = require( "./mongo" )();
-
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
@@ -9,19 +7,17 @@ const assert = require('assert');
 // // Database Name
 // const dbName = 'myproject';
 
-// // Create a new MongoClient
-// const client = new MongoClient(url);
-
 // // Use connect method to connect to the Server
-// client.connect(function(err) {
+// MongoClient.connect(url, function(err, client) {
 //   assert.equal(null, err);
 //   console.log("Connected successfully to server");
 
 //   const db = client.db(dbName);
 
-//   insertDocuments(db, function() {
-//     client.close();
-//   });
+//   // insertDocuments(db, function() {
+//   //   client.close();
+//   // });
+//   client.close();
 // });
 
 // const insertDocuments = function(db, callback) {
@@ -56,14 +52,28 @@ const COMPARE = {
 let comfyDB = {
   _client: null,
   _DB: null,
-  Init: async function( { url = "mongodb://localhost:27017", name = "comfyDB" } = {} ) {
-    try {
-      comfyDB._client = await MongoClient.connect( url, { useNewUrlParser: true } );
-      comfyDB._DB = comfyDB._client.db( name );
-    }
-    catch( err ) {
-      console.log( "Error:", err );
-    }
+  Init: function( { url = "mongodb://localhost:27017", name = "comfyDB" } = {} ) {
+    return new Promise( async ( resolve, reject ) => {
+      try {
+        // TODO: If we're not depending on the default local instance of mongo, skip booting it up
+        const mongo = require( "./mongo" )();
+        mongo.on( "error", ( err ) => {
+          reject( err );
+        });
+        mongo.on( "ready", async () => {
+          console.log( "Ready..." );
+          comfyDB._client = await MongoClient.connect( url, { useNewUrlParser: true } );
+          comfyDB._DB = comfyDB._client.db( name );
+          resolve();
+        });
+        mongo.on( "exit", ( code ) => {
+          console.log( "Exit:", code );
+        });
+      }
+      catch( err ) {
+        reject( err );
+      }
+    });
   },
   Close: function() {
     if( comfyDB._client ) {
@@ -73,22 +83,35 @@ let comfyDB = {
     }
   },
   Collections: {
-    Create: function( name ) {
+    Create: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      const collection = comfyDB._DB.collection( name );
-      // comfyDB._DB
+      return await comfyDB._DB.createCollection( name );
     },
     List: async function() {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      return await comfyDB._DB.listCollections().toArray();
+      return ( await comfyDB._DB.listCollections().toArray() ).map( x => x.name );
     },
-    Delete: function( name ) {},
+    Delete: async function( name ) {
+      if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
+      return await comfyDB._DB.collection( name ).drop();
+    },
   },
   Is: COMPARE,
   Data: {
     Set: function( collection, id, data, overwrite = true ) {
       // check if key is a single string or an array for batch update
       // TODO: Add Objects, tagging with ID and timestamp for create/update
+        // const collection = db.collection( collection );
+        // // Insert some documents
+        // collection.insertMany([
+        //   {a : 1}, {a : 2}, {a : 3}
+        // ], function(err, result) {
+        //   assert.equal(err, null);
+        //   assert.equal(3, result.result.n);
+        //   assert.equal(3, result.ops.length);
+        //   console.log("Inserted 3 documents into the collection");
+        //   callback(result);
+        // });
     },
     Delete: function( collection, id ) {
       // check if key is a single string or an array for batch update
@@ -125,27 +148,3 @@ let comfyDB = {
 };
 
 module.exports = comfyDB;
-
-async function testComfy() {
-  try {
-    console.log( "initializing..." );
-    await comfyDB.Init();
-    console.log( "creating collection..." );
-    comfyDB.Collections.Create( "test" );
-    console.log( "listing collections..." );
-    var collections = await comfyDB.Collections.List();
-    console.log( collections );
-  }
-  catch( ex ) {
-    console.log( ex );
-  }
-  finally {
-    console.log( "closing..." );
-    comfyDB.Close();
-    process.exit();
-  }
-}
-
-(async () => {
-  testComfy();
-})();
