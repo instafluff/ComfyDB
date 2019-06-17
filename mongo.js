@@ -26,11 +26,11 @@ module.exports = function () {
   });
 
   mongoProc.stdout.on( "data", ( data ) => {
-    console.log( `OUT: ${data}` );
+    // console.log( `OUT: ${data}` );
   });
 
   mongoProc.stderr.on( "data", ( data ) => {
-    console.log( `ERR: ${data}` );
+    // console.log( `ERR: ${data}` );
   });
 
   mongoProc.on( "close", ( code ) => {
