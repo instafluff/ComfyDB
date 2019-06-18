@@ -21,10 +21,11 @@ async function testComfy() {
   finally {
     console.log( "closing..." );
     ComfyDB.Close();
-    process.exit();
+    process.kill( process.pid, "SIGTERM" );
   }
 }
 
-(async () => {
-  testComfy();
-})();
+// (async () => {
+//   testComfy();
+// })();
+testComfy();

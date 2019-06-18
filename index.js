@@ -57,7 +57,11 @@ let comfyDB = {
       try {
         // TODO: If we're not depending on the default local instance of mongo, skip booting it up
         const mongo = require( "comfy-mongo" )();
+        mongo.on( "output", ( data ) => {
+          // console.log( data );
+        });
         mongo.on( "error", ( err ) => {
+          // console.log( err );
           reject( err );
         });
         mongo.on( "ready", async () => {
