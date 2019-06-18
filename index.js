@@ -56,7 +56,7 @@ let comfyDB = {
     return new Promise( async ( resolve, reject ) => {
       try {
         // TODO: If we're not depending on the default local instance of mongo, skip booting it up
-        const mongo = require( "./mongo" )();
+        const mongo = require( "comfy-mongo" )();
         mongo.on( "error", ( err ) => {
           reject( err );
         });
@@ -85,15 +85,15 @@ let comfyDB = {
   Collections: {
     Create: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      return await comfyDB._DB.createCollection( name );
+      return comfyDB._DB.createCollection( name );
     },
     List: async function() {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      return ( await comfyDB._DB.listCollections().toArray() ).map( x => x.name );
+      return comfyDB._DB.listCollections().toArray().then( list => list.map( x => x.name ) );
     },
     Delete: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      return await comfyDB._DB.collection( name ).drop();
+      return comfyDB._DB.collection( name ).drop();
     },
   },
   Is: COMPARE,
