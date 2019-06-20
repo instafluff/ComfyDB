@@ -86,10 +86,16 @@ let comfyDB = {
       comfyDB._DB = null;
     }
   },
+  Backup: function() {
+    // TODO: Backup Database
+  },
+  Restore: function() {
+    // TODO: Restore Database
+  },
   Collections: {
     Create: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
-      return comfyDB._DB.createCollection( name );
+      return comfyDB._DB.createCollection( name ).then( x => comfyDB._DB.collection( name ).createIndex( { key: 1 }, { unique: true } ) );
     },
     List: async function() {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
@@ -102,38 +108,59 @@ let comfyDB = {
   },
   Is: COMPARE,
   Data: {
-    Set: function( collection, id, data, overwrite = true ) {
+    Set: function( collection, { options } ) {
+      // check if key is a single string or an array for batch update
+      // TODO: Add Objects, tagging with timestamp for create/update
+    },
+    SetByKey: function( collection, key, data, overwrite = true ) {
       // check if key is a single string or an array for batch update
       // TODO: Add Objects, tagging with ID and timestamp for create/update
-        // const collection = db.collection( collection );
-        // // Insert some documents
-        // collection.insertMany([
-        //   {a : 1}, {a : 2}, {a : 3}
-        // ], function(err, result) {
-        //   assert.equal(err, null);
-        //   assert.equal(3, result.result.n);
-        //   assert.equal(3, result.ops.length);
-        //   console.log("Inserted 3 documents into the collection");
-        //   callback(result);
-        // });
+      const set = comfyDB._DB.collection( collection );
+      let values = [];
+      if( typeof key === "string" || key instanceof String ) {
+        values = [ { ...data, key: key } ];
+        key = [ key ];
+      }
+      else if( Array.isArray( key ) && Array.isArray( data ) ) {
+        if( key.length !== data.length ) {
+          throw new Error( "Key-Data Length Mismatch" );
+        }
+        values = data.map( ( x, i ) => ({ ...x, key: key[ i ] }) );
+      }
+      else {
+        throw new Error( "Invalid Argument Type" );
+      }
+
+      if( overwrite ) {
+        let bulkOp = set.initializeUnorderedBulkOp();
+        key.forEach( ( k, i ) => bulkOp.find( { key: k } ).upsert().updateOne( { $set: values[ i ] }, { upsert: true } ) );
+        return bulkOp.execute();
+      }
+      else {
+        return set.insertMany( values );
+      }
     },
-    Delete: function( collection, id ) {
+    Delete: function( collection, key ) {
       // check if key is a single string or an array for batch update
       // TODO: Delete objects
     },
-    Increment: function( collection, id, key, amount ) {},
-    Decrement: function( collection, id, key, amount ) {
-      comfyDB.Increment( collection, id, key, -amount );
+    Increment: function( collection, key, field, amount ) {},
+    Decrement: function( collection, key, field, amount ) {
+      comfyDB.Increment( collection, key, field, -amount );
     },
     Find: function( collection, options ) {
-
+      const set = comfyDB._DB.collection( collection );
+      return set.find().toArray();
     },
     FindById: function( collection, id ) {
-      comfyDB.Find( { id });
+      comfyDB.Find( { id } );
     },
-    FindByKey: function( collection, key, compare = COMPARE.True, value = "", count = 100, descending = true ) {
+    FindByKey: function( collection, key ) {
+      comfyDB.Find( { key } );
+    },
+    FindByField: function( collection, field, compare = COMPARE.True, value = "", count = 100, descending = true ) {
       comfyDB.Find( {
-        key,
+        field,
         compare,
         value,
         count,

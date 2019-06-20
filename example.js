@@ -9,6 +9,11 @@ async function testComfy() {
     console.log( "listing collections..." );
     var collections = await ComfyDB.Collections.List();
     console.log( collections );
+    await ComfyDB.Data.SetByKey( "test", "a", { name: "test" }, true );
+    await ComfyDB.Data.SetByKey( "test", [ "a", "b", "c" ], [ { name: "A" }, { name: "B" }, { name: "C" } ], true );
+    await ComfyDB.Data.SetByKey( "test", "a", { name: "Z" }, true );
+    var all = await ComfyDB.Data.Find( "test", {} );
+    console.log( all );
     console.log( "deleting collection..." );
     await ComfyDB.Collections.Delete( "test" );
     console.log( "listing collections..." );
