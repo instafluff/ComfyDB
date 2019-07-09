@@ -73,6 +73,7 @@ let comfyDB = {
         });
         comfyDB._mongo.on( "exit", ( code ) => {
           console.log( "Exit:", code );
+          comfyDB.Close();
         });
       }
       catch( err ) {

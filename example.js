@@ -38,7 +38,6 @@ async function testComfy() {
   finally {
     console.log( "closing..." );
     ComfyDB.Close();
-    // process.kill( process.pid, "SIGTERM" );
   }
 }
 
