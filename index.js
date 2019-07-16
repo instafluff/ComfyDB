@@ -81,7 +81,7 @@ let comfyDB = {
       }
     });
   },
-  Close: function() {
+  Close: function( shouldExit = true ) {
     if( comfyDB._client ) {
       comfyDB._client.close();
       comfyDB._client = null;
@@ -89,6 +89,9 @@ let comfyDB = {
     }
     if( comfyDB._mongo ) {
       comfyDB._mongo.shutdown();
+    }
+    if( shouldExit ) {
+      process.exit();
     }
   },
   Backup: function() {
