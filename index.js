@@ -247,7 +247,7 @@ let comfyDB = {
         }
       }
 
-      console.log( search );
+      // console.log( search );
 
       let query = set.find( search );
       if( options.count ) {
@@ -271,6 +271,7 @@ let comfyDB = {
         compare,
         value,
         count,
+        sortBy: field,
         isOrderDescending: descending
       });
     },
