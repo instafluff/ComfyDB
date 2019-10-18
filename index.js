@@ -330,9 +330,10 @@ let comfyDB = {
      * @param {string | string[]} key Key or array of keys to decrement.
      * @param {string} field Field of key to decrement.
      * @param {number} amount Amount to decrement field.
+     * @returns {Promise<import("mongodb").BulkWriteResult>}
      */
     Decrement: function( collection, key, field, amount ) {
-      comfyDB.Data.Increment( collection, key, field, -amount );
+      return comfyDB.Data.Increment( collection, key, field, -amount );
     },
     /**
      * Query data in the database by some options.
