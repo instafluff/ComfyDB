@@ -49,6 +49,8 @@ const COMPARE = {
   False: "0"
 };
 
+let comfyDBRunning = false;
+
 let comfyDB = {
   _mongo: null,
   _client: null,
@@ -56,6 +58,7 @@ let comfyDB = {
   Init: function( { url = "mongodb://localhost:27017", name = "comfyDB" } = {} ) {
     return new Promise( async ( resolve, reject ) => {
       try {
+        comfyDBRunning = false;
         // TODO: If we're not depending on the default local instance of mongo, skip booting it up
         comfyDB._mongo = require( "comfy-mongo" )();
         comfyDB._mongo.on( "output", ( data ) => {
@@ -63,10 +66,15 @@ let comfyDB = {
         });
         comfyDB._mongo.on( "error", ( err ) => {
           // console.log( err );
-          reject( err );
+          if( comfyDBRunning ) {
+          }
+          else {
+            reject( err );
+          }
         });
         comfyDB._mongo.on( "ready", async () => {
           console.log( "Ready..." );
+          comfyDBRunning = true;
           comfyDB._client = await MongoClient.connect( url, { useNewUrlParser: true } );
           comfyDB._DB = comfyDB._client.db( name );
           resolve();
@@ -74,6 +82,7 @@ let comfyDB = {
         comfyDB._mongo.on( "exit", ( code ) => {
           console.log( "Exit:", code );
           comfyDB.Close();
+          comfyDBRunning = false;
         });
       }
       catch( err ) {
