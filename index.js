@@ -73,14 +73,14 @@ let comfyDB = {
           }
         });
         comfyDB._mongo.on( "ready", async () => {
-          console.log( "Ready..." );
+          console.log( "[ComfyDB] Ready..." );
           comfyDBRunning = true;
           comfyDB._client = await MongoClient.connect( url, { useNewUrlParser: true } );
           comfyDB._DB = comfyDB._client.db( name );
           resolve();
         });
         comfyDB._mongo.on( "exit", ( code ) => {
-          console.log( "Exit:", code );
+          console.log( "[ComfyDB] Exit:", code );
           comfyDB.Close();
           comfyDBRunning = false;
         });
