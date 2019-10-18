@@ -90,6 +90,9 @@ let comfyDB = {
       }
     });
   },
+  IsRunning: function() {
+    return comfyDBRunning;
+  }
   Close: function( shouldExit = true ) {
     if( comfyDB._client ) {
       comfyDB._client.close();
