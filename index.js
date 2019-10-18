@@ -49,12 +49,52 @@ const COMPARE = {
   False: "0"
 };
 
+/**
+ * @typedef InitOptions
+ * @prop {string} [url] (Currently unsued) MongoDB URL to connect to. Defaults to `"mongodb://localhost:27017"`.
+ * @prop {string} [name] Name of the database to use. Defaults to `"comfyDB"`.
+ */
+
+/**
+ * @typedef FindOptions
+ * @prop {string} [id] Find by the `_id` field.
+ * @prop {string} [key] Find by the `key` field.
+ * @prop {boolean} [count] Limit the amount of results.
+ * @prop {string} [sortBy] A field to sort results by. Must also set
+ * `isOrderDescending`.
+ * @prop {boolean} [isOrderDescending] If `sortBy` is set, choose to sort by
+ * descending (`true`) or ascending (`false`).
+ * @prop {string} [field] A field to compare against. Must also set `compare` and `value`.
+ * @prop {"=" | "!" | "<" | "<=" | ">" | ">=" | "^" | "$" | "_" | "1" | "0"} compare
+ * Compare the set `field` against a `value`. Must also set `value` and `field`.
+ * - Equal: "=",
+ * - Not equal: "!",
+ * - Less than: "<",
+ * - Less than or equal: "<=",
+ * - Greater than: ">",
+ * - Greater than or equal: ">=",
+ * - Starts with: "^",
+ * - Ends with: "$",
+ * - Contains: "_",
+ * - True: "1",
+ * - False: "0"
+ * @prop {*} [value] A value to `compare` against at `field`. Must also set `compare` and `field`.
+ */
+
 let comfyDBRunning = false;
 
 let comfyDB = {
   _mongo: null,
+  /** @type {import('mongodb').MongoClient} */
   _client: null,
+  /** @type {import('mongodb').Db} */
   _DB: null,
+  /**
+   * Initialize the connection.
+   * 
+   * @param {InitOptions} options
+   * @returns {Promise}
+   */
   Init: function( { url = "mongodb://localhost:27017", name = "comfyDB" } = {} ) {
     return new Promise( async ( resolve, reject ) => {
       try {
@@ -90,9 +130,19 @@ let comfyDB = {
       }
     });
   },
+  /**
+   * Check if the database is running.
+   * 
+   * @returns {boolean}
+   */
   IsRunning: function() {
     return comfyDBRunning;
-  }
+  },
+  /**
+   * Close the connection and shutdown the server.
+   * 
+   * @param {boolean} [shouldExit] Whether or not to end the process. Defauls to true.
+   */
   Close: function( shouldExit = true ) {
     if( comfyDB._client ) {
       comfyDB._client.close();
@@ -106,21 +156,44 @@ let comfyDB = {
       process.exit();
     }
   },
+  /**
+   * Create a backup of the database. (TODO)
+   */
   Backup: function() {
     // TODO: Backup Database
   },
+  /**
+   * Restore from a backup of the database. (TODO)
+   */
   Restore: function() {
     // TODO: Restore Database
   },
   Collections: {
+    /**
+     * Create a collection in the database.
+     * 
+     * @param {string} name Name of the collection to create.
+     * @returns {Promise<string>}
+     */
     Create: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
       return comfyDB._DB.createCollection( name ).then( x => comfyDB._DB.collection( name ).createIndex( { key: 1 }, { unique: true } ) );
     },
+    /**
+     * List the collections in the database.
+     * 
+     * @return {Promise<string[]>}
+     */
     List: async function() {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
       return comfyDB._DB.listCollections().toArray().then( list => list.map( x => x.name ) );
     },
+    /**
+     * Delete/drop a collection in the database.
+     * 
+     * @param {string} name Name of the collection to delete.
+     * @return {Promise}
+     */
     Delete: async function( name ) {
       if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
       return comfyDB._DB.collection( name ).drop();
@@ -128,10 +201,27 @@ let comfyDB = {
   },
   Is: COMPARE,
   Data: {
+    /**
+     * (TODO)
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {*} options
+     */
     Set: function( collection, { options } ) {
       // check if key is a single string or an array for batch update
       // TODO: Add Objects, tagging with timestamp for create/update
     },
+    /**
+     * Set data in the database by a key name.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string | string[]} key Key or array of keys to save data to.
+     * @param {* | []} data Data to save to the key. If `key` is an array,
+     * data must also be an array that matches the length of the `key` array.
+     * @param {*} [overwrite] Whether or not to overwrite existing data in the
+     * database. Defaults to true.
+     * @returns {Promise<import("mongodb").BulkWriteResult | import("mongodb").InsertWriteOpResult>}
+     */
     SetByKey: function( collection, key, data, overwrite = true ) {
       // check if key is a single string or an array for batch update
       // TODO: Add timestamp for create/update
@@ -166,10 +256,23 @@ let comfyDB = {
         return set.insertMany( values );
       }
     },
+    /**
+     * (TODO)
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {*} options
+     */
     Delete: function( collection, { options } ) {
       // check if key is a single string or an array for batch update
       // TODO: Delete objects
     },
+    /**
+     * Delete data in the database by key name.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string | string[]} key Key or array of keys to delete data at.
+     * @returns {Promise<import("mongodb").BulkWriteResult>}
+     */
     DeleteByKey: function( collection, key ) {
       // check if key is a single string or an array for batch update
       const set = comfyDB._DB.collection( collection );
@@ -186,6 +289,15 @@ let comfyDB = {
       key.forEach( ( k, i ) => bulkOp.find( { key: k } ).remove() );
       return bulkOp.execute();
     },
+    /**
+     * Increment a value at field of key in the database.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string | string[]} key Key or array of keys to increment.
+     * @param {string} field Field of key to increment.
+     * @param {number} amount Amount to increment field.
+     * @returns {Promise<import("mongodb").BulkWriteResult>}
+     */
     Increment: function( collection, key, field, amount ) {
       const set = comfyDB._DB.collection( collection );
       let values = [];
@@ -211,9 +323,24 @@ let comfyDB = {
       }, { upsert: true } ) );
       return bulkOp.execute();
     },
+    /**
+     * Decrement a value at field of key in the database.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string | string[]} key Key or array of keys to decrement.
+     * @param {string} field Field of key to decrement.
+     * @param {number} amount Amount to decrement field.
+     */
     Decrement: function( collection, key, field, amount ) {
       comfyDB.Data.Increment( collection, key, field, -amount );
     },
+    /**
+     * Query data in the database by some options.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {FindOptions} options Options for the find query.
+     * @returns {Promise<any[]>}
+     */
     Find: function( collection, options ) {
       // TODO: Add time query for how long it took
       const set = comfyDB._DB.collection( collection );
@@ -270,12 +397,37 @@ let comfyDB = {
       }
       return query.toArray();
     },
+    /**
+     * Query data in the database by its document `_id`.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string} id A document _id value.
+     * @returns {Promise<any[]>}
+     */
     FindById: function( collection, id ) {
       return comfyDB.Data.Find( collection, { id } );
     },
+    /**
+     * Query data in the database by its document `_id`.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string} id A document _id value.
+     * @returns {Promise<any[]>}
+     */
     FindByKey: function( collection, key ) {
       return comfyDB.Data.Find( collection, { key } );
     },
+    /**
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string} field Name of the field to find by.()
+     * @param {"=" | "!" | "<" | "<=" | ">" | ">=" | "^" | "$" | "_" | "1" | "0"} compare Compare the set `field` against a `value`. See Find. Defaults to True.
+     * @param {*} [value] Value to find by when comparing. Defaults to "".
+     * @param {number} [count] Limit the amount of results. Defaults to 100.
+     * @param {boolean} [descending] If the results should be sorted by
+     * descending order. Defaults to true.
+     * @returns {Promise<any[]>}
+     */
     FindByField: function( collection, field, compare = COMPARE.True, value = "", count = 100, descending = true ) {
       // TODO: Support an array of fields and comparisons
       return comfyDB.Data.Find( collection, {
@@ -287,6 +439,14 @@ let comfyDB = {
         isOrderDescending: descending
       });
     },
+    /**
+     * Get the last `count` items in a collection.
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {number} [count] Limit the amount of results in the response.
+     * Defaults to 100.
+     * @returns {Promise<any[]>}
+     */
     FindLatest: function( collection, count = 100 ) {
       return comfyDB.Data.Find( collection, {
         sortBy: "updatedAt",
@@ -294,6 +454,14 @@ let comfyDB = {
         count,
       } );
     },
+    /**
+     * 
+     * @param {string} collection Name of the collection in the database.
+     * @param {string} field Name of the field to count.
+     * @param {string} [compare] Compare operator. See Find. Defaults to True.
+     * @param {*} [value] Value to compare against. Defaults to "".
+     * @returns {Promise<number>}
+     */
     Count: function( collection, field, compare = COMPARE.True, value = "" ) {
       // TODO: Optimize!!!
       return comfyDB.Data.FindByField( collection, field, compare, value ).length;
