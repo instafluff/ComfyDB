@@ -1,6 +1,6 @@
 {
   "name": "comfydb",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Comfiest Way To Use A Database!",
   "main": "index.js",
   "scripts": {
