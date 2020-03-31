@@ -23,6 +23,6 @@
   "homepage": "https://github.com/instafluff/ComfyDB#readme",
   "dependencies": {
     "comfy-mongo": "^1.0.7",
-    "mongodb": "^3.2.7"
+    "mongodb": "^3.5.5"
   }
 }
