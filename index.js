@@ -197,8 +197,6 @@ let comfyDB = {
 		// console.log( search );
 
 		let query = set.find( search );
-		query = query.skip( options.start );
-		query = query.limit( options.limit );
 		return query.count();
 	},
 };
