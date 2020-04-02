@@ -54,7 +54,7 @@ async function testComfy() {
 
         // Add stat counters
         console.log( "saving stats...");
-        ComfyDB.DeleteAll( "game-stats" );
+        ComfyDB.DeleteAll( null, "game-stats" );
         await ComfyDB.Store( "teapup", { hitpoints: 100, skittles: 0 }, "game-stats" );
         await ComfyDB.Store( "catastrophe", { hitpoints: 100 }, "game-stats" );
 
@@ -93,16 +93,16 @@ async function testComfy() {
 // Run a self-contained MongoDB using ComfyMongoDB to run the example
 const ComfyMongo = require( "comfy-mongo" )();
 ComfyMongo.on( "output", ( data ) => {
-  // console.log( data );
+    // console.log( data );
 });
 ComfyMongo.on( "error", ( err ) => {
-  // console.log( err );
+    // console.log( err );
 });
 ComfyMongo.on( "ready", async () => {
-  console.log( "[ComfyDB] Ready..." );
-  await testComfy();
-  ComfyMongo.shutdown();
+    console.log( "[ComfyDB] Ready..." );
+    await testComfy();
+    ComfyMongo.shutdown();
 });
 ComfyMongo.on( "exit", ( code ) => {
-  console.log( "[ComfyDB] Exit:", code );
+    console.log( "[ComfyDB] Exit:", code );
 });

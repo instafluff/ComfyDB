@@ -18,7 +18,7 @@ let comfyDB = {
 	IsConnected: function() {
 		return !!comfyDB._mongo;
 	},
-	Close: function( shouldExit = true ) {
+	Close: function() {
 		if( comfyDB._mongo ) {
 			comfyDB._mongo.close();
 			comfyDB._mongo = null;
@@ -146,10 +146,6 @@ let comfyDB = {
 		}, options );
 
 		// Aliases
-		if( options.count ) {
-			options.limit = options.count;
-		}
-
 		if( options.where ) {
 			search = generateMongoSearchFromObject( options.where );
 		}
@@ -185,16 +181,10 @@ let comfyDB = {
 
 		// Assign options with defaults
 		options = Object.assign( {
-			limit: 100,
-			start: 0,
 			where: null,
 		}, options );
 
 		// Aliases
-		if( options.count ) {
-			options.limit = options.count;
-		}
-
 		if( options.where ) {
 			search = generateMongoSearchFromObject( options.where );
 		}
