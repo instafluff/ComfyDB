@@ -5,7 +5,7 @@ The Comfiest Way to Use a Database
 
 ComfyDB abstracts away the specific syntax for working with databases so that it's intuitive and easy to use for common scenarios while benefitting from search, performance, redudancy of a full-fledged database.
 
-It also takes care of the mundane tasks like setting and maintaining `createdAt` and `updatedAt` fields for each object entry.
+It also takes care of mundane tasks like setting and maintaining `createdAt` and `updatedAt` fields for each object entry.
 
 ```javascript
 await ComfyDB.Store( "user1", { username: "Instafluff", profile: "Comfiest Coder and Mug Chef!", cakes: 0 } );
