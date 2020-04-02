@@ -8,20 +8,13 @@ ComfyDB abstracts away the specific syntax for working with databases so that it
 It also takes care of the mundane tasks like setting and maintaining `createdAt` and `updatedAt` fields for each object entry.
 
 ```javascript
-const ComfyDB = require( "comfydb" );
-
-await ComfyDB.Connect();
-
 await ComfyDB.Store( "user1", { username: "Instafluff", profile: "Comfiest Coder and Mug Chef!", cakes: 0 } );
-await ComfyDB.Store( "user2", { username: "Fluffington", profile: "Fluffy, Yellow, Hamsterbear.", cakes: 0 } );
 
 let user1 = await ComfyDB.Get( "user1" );
 
 await ComfyDB.Increment( "cakes", { by: 2, where: { username: { equals: "instafluff" } } } );
 
 let users = await ComfyDB.Search( { sortBy: "createdAt", where: { username: { contains: "fluff" } } } );
-
-ComfyDB.Close();
 ```
 
 ## Instafluff ##
@@ -51,6 +44,7 @@ npm install comfydb --save
 2. Connect to a MongoDB database and store, retrieve, search data
 ```javascript
 const ComfyDB = require( "comfydb" );
+// Wrap in async for back-compat in case top-level async/await is not supported
 (async () => {
     try {
         await ComfyDB.Connect( { url: "mongodb://localhost:27017", dbname: "ComfyDB" } );
