@@ -91,7 +91,7 @@ ComfyDB.Close();
 // --- Data ---
 
 // Insert/Update JSON object entry by key (e.g. userID, username, timestamp, ... )
-await ComfyDB.Store( key, data, collection = "ComfyDefault" );
+await ComfyDB.Store( key, data, collection = "ComfyDefault" ); // ComfyDB.Save() also works
 
 // Retrieve object entry by key
 await ComfyDB.Get( key, collection = "ComfyDefault" );

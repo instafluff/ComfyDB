@@ -37,6 +37,9 @@ let comfyDB = {
 		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
 		return comfyDB._DB.collection( collection ).drop();
 	},
+	Save: async function( key, data, collection = "ComfyDefault" ) {
+		return comfyDB.Store( key, data, collection );
+	},
 	Store: async function( key, data, collection = "ComfyDefault" ) {
 		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
 		// Create an index on the key field for performance
