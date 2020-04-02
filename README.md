@@ -134,11 +134,11 @@ await ComfyDB.DeleteCollection( collection );
 Defining the search conditions for ComfyDB functions is done by setting up a configuration object.
 
 #### Search Options Fields ####
-  - **sortBy** *(Only in **ComfyDB.Search**)*
+  - **sortBy** (orderBy) *(Only in **ComfyDB.Search**)*
     - The name of the stored data object entry's field to use for the sort. Defaults to `createdAt`.
   - **sort** *(Only in **ComfyDB.Search**)*
     - `asc` or `desc` for ascending or descending sort based on the `sortBy` field. Defaults to `asc`.
-  - **limit** *(Only in **ComfyDB.Search**)*
+  - **limit** (count) *(Only in **ComfyDB.Search**)*
     - Maximum number of results, used for pagination. Defaults to `100`.
   - **start** *(Only in **ComfyDB.Search**)*
     - Starting index for the results, used for pagination. Defaults to `0`.
