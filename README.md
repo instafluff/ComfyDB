@@ -9,9 +9,9 @@ It also takes care of the mundane tasks like setting and maintaining `createdAt`
 
 ```javascript
 await ComfyDB.Store( "user1", { username: "Instafluff", profile: "Comfiest Coder and Mug Chef!", cakes: 0 } );
-let user1 = await ComfyDB.Get( "user1" );
+await ComfyDB.Get( "user1" );
 await ComfyDB.Increment( "cakes", { by: 2, where: { username: { equals: "instafluff" } } } );
-let users = await ComfyDB.Search( { sortBy: "createdAt", where: { username: { contains: "fluff" } } } );
+await ComfyDB.Search( { sortBy: "createdAt", where: { username: { contains: "fluff" } } } );
 ```
 
 ## Instafluff ##
