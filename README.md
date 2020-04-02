@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/instafluff/ComfyDB.svg?branch=master)](https://travis-ci.com/instafluff/ComfyDB)
+
 # ComfyDB
 The Comfiest Way to Use a Database
 
