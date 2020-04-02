@@ -1,30 +1,3 @@
-// ComfyDB v2
-//
-// - Store JSON
-// - Get JSON
-// - Delete JSON
-// - Sort & Filter JSON
-// - Increment & Decrement
-//
-// ComfyDB.Connect( { url = "mongodb://localhost:27017", dbname = "comfyDB" } = {} );
-// ComfyDB.IsConnected();
-// ComfyDB.Store( "key", [{ stuff }], group = "ComfyDB" );
-// ComfyDB.Get( "key", group = "ComfyDB" );
-// ComfyDB.Search( options = null, group = "ComfyDB" );
-// // - ComfyDB.Delete( "key", options = null, group = "ComfyDB" );
-// // ComfyDB.Increment( "key", { options } = null, group = "ComfyDB" );
-// // ComfyDB.Decrement( "key", { options } = null, group = "ComfyDB" );
-// // ComfyDB.Count( "key", { options } = null, group = "ComfyDB" );
-// ComfyDB.Close();
-//
-//
-// ComfyDB.Get( "key" );
-// ComfyDB.Get( "key", { sortBy: "created", sort: "asc", count: 100, start: 0 } );
-// ComfyDB.Get( "key", { where: { name: { equals: "instafluff" } } } );
-// ComfyDB.Get( "key", { where: { created: { before: datetime } } } );
-// ComfyDB.Get( "key", { orderBy: "name", sort: "asc", count: 100, start: 0, where: { created: { before: datetime } } } );
-
-
 const MongoClient = require( "mongodb" ).MongoClient;
 
 let comfyDB = {
@@ -111,55 +84,197 @@ let comfyDB = {
 		// Assign options with defaults
 		options = Object.assign( {
 			sortBy: "createdAt",
-			sort: "desc",
-			count: 100,
+			sort: "asc",
+			limit: 100,
 			start: 0,
 			where: null,
 		}, options );
 
+		// Aliases
 		if( options.orderBy ) {
 			options.sortBy = options.orderBy;
 		}
-
-		if( options.key ) {
-			search[ "key" ] = options.key;
+		if( options.count ) {
+			options.limit = options.count;
 		}
 
+		// Sorting
 		sort = { [options.sortBy]: options.sort.toLowerCase().startsWith( "asc" ) ? 1 : -1 };
+
 		if( options.where ) {
-			Object.keys( options.where ).forEach( w => {
-				// Check on the first key of field for the operator
-				let searchOp = Object.keys( options.where[ w ] )[ 0 ];
-				switch( searchOp.toLowerCase() ) {
-					case "equals":
-					case "equal":
-						search[ w ] = { $eq: options.where[ w ][ searchOp ] };
-						break;
-					case "notequals":
-					case "notequal":
-					case "doesntequal":
-						search[ w ] = { $ne: options.where[ w ][ searchOp ] };
-						break;
-					case "before":
-					case "lessthan":
-					case "lt":
-						search[ w ] = { $lt: options.where[ w ][ searchOp ] };
-						break;
-					case "after":
-					case "greaterthan":
-					case "gt":
-						search[ w ] = { $gt: options.where[ w ][ searchOp ] };
-						break;
-				}
-			});
+			search = generateMongoSearchFromObject( options.where );
+		}
+		if( options.key ) {
+			search[ "key" ] = options.key;
 		}
 		// console.log( search );
 
 		let query = set.find( search );
-		query = query.limit( options.count );
+		query = query.skip( options.start );
+		query = query.limit( options.limit );
 		query = query.sort( sort );
 		return query.toArray();
 	},
+	Delete: function( key, collection = "ComfyDefault" ) {
+		return comfyDB.DeleteAll( { key: key }, collection );
+	},
+	DeleteAll: function( options = {}, collection = "ComfyDefault" ) {
+		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
+		// check if key is a single string or an array for batch update
+		const set = comfyDB._DB.collection( collection );
+		let search = {};
+		if( options.where ) {
+			search = generateMongoSearchFromObject( options.where );
+		}
+		if( options.key ) {
+			search[ "key" ] = options.key;
+		}
+
+		let bulkOp = set.initializeUnorderedBulkOp();
+		bulkOp.find( search ).remove();
+		return bulkOp.execute();
+	},
+	Increment: function( field, options = null, collection = "ComfyDefault" ) {
+		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
+		const set = comfyDB._DB.collection( collection );
+		let search = {};
+
+		// Assign options with defaults
+		options = Object.assign( {
+			by: 1,
+			where: null,
+		}, options );
+
+		// Aliases
+		if( options.count ) {
+			options.limit = options.count;
+		}
+
+		if( options.where ) {
+			search = generateMongoSearchFromObject( options.where );
+		}
+		if( options.key ) {
+			search[ "key" ] = options.key;
+		}
+		// console.log( search );
+
+		let bulkOp = set.initializeUnorderedBulkOp();
+		bulkOp.find( search ).upsert().update( {
+			$inc: { [field]: options.by },
+			$set: {
+				updatedAt: new Date()
+			},
+			$setOnInsert: {
+				createdAt: new Date()
+			}
+		} );//, { upsert: true, multi: true } );
+		return bulkOp.execute();
+	},
+	Decrement: function( field, options = null, collection = "ComfyDefault" ) {
+		options = Object.assign( {
+			by: 1,
+			where: null,
+		}, options );
+		options.by = -options.by;
+		return comfyDB.Increment( field, options, collection );
+	},
+	Count: function( options = null, collection = "ComfyDefault" ) {
+		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
+		const set = comfyDB._DB.collection( collection );
+		let search = {};
+
+		// Assign options with defaults
+		options = Object.assign( {
+			limit: 100,
+			start: 0,
+			where: null,
+		}, options );
+
+		// Aliases
+		if( options.count ) {
+			options.limit = options.count;
+		}
+
+		if( options.where ) {
+			search = generateMongoSearchFromObject( options.where );
+		}
+		if( options.key ) {
+			search[ "key" ] = options.key;
+		}
+		// console.log( search );
+
+		let query = set.find( search );
+		query = query.skip( options.start );
+		query = query.limit( options.limit );
+		return query.count();
+	},
 };
+
+function generateMongoSearchFromObject( where ) {
+	let search = {};
+	Object.keys( where ).forEach( field => {
+		// Check on the first key of field for the operator
+		if( Object.keys( where[ field ] ).length === 0 ) {
+			throw new Error( "Missing Search Op for Field:", field );
+		}
+		let searchOp = Object.keys( where[ field ] )[ 0 ];
+		switch( searchOp.toLowerCase() ) {
+			case "eq":
+			case "equals":
+			case "equal":
+			case "is":
+			case "isequal":
+			case "isequalto":
+			case "=":
+				search[ field ] = { $eq: where[ field ][ searchOp ] };
+				break;
+			case "ne":
+			case "not":
+			case "notequals":
+			case "notequal":
+			case "doesntequal":
+			case "isnot":
+			case "isnt":
+			case "isnotequal":
+			case "isnotequalto":
+			case "!":
+			case "!=":
+			case "<>":
+				search[ field ] = { $ne: where[ field ][ searchOp ] };
+				break;
+			case "before":
+			case "lessthan":
+			case "lt":
+			case "<":
+				search[ field ] = { $lt: where[ field ][ searchOp ] };
+				break;
+			case "after":
+			case "greaterthan":
+			case "gt":
+			case ">":
+				search[ field ] = { $gt: where[ field ][ searchOp ] };
+				break;
+			case "contains":
+			case "includes":
+				search[ field ] = RegExp( `.*${where[ field ][ searchOp ]}.*`, "i" );
+				break;
+			case "starts":
+			case "startswith":
+			case "begins":
+			case "beginswith":
+			case "prefix":
+				search[ field ] = RegExp( `^${where[ field ][ searchOp ]}`, "i" );
+				break;
+			case "ends":
+			case "endswith":
+			case "suffix":
+				search[ field ] = RegExp( `${where[ field ][ searchOp ]}$`, "i" );
+				break;
+			default:
+				throw new Error( "Unsupported Search Op:", searchOp );
+		}
+	});
+	return search;
+}
 
 module.exports = comfyDB;
