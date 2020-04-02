@@ -171,7 +171,7 @@ let scores = await ComfyDB.Search( { sortBy: "updatedAt", sort: "desc", limit: 5
 await ComfyDB.Decrement( "hitpoints", { by: 30, where: { party: { equals: "A" } } }, "game-stats" );
 
 // Deleting all enemies with HP < 0 in the Game-Stats collection
-await ComfyDB.DeleteAll( { where: { isEnemy: { is: true }, hitpoints: { "<": 0 } }, "game-stats" );
+await ComfyDB.DeleteAll( { where: { isEnemy: { is: true }, hitpoints: { "<": 0 } } }, "game-stats" );
 ```
 
 ## Credits ##
