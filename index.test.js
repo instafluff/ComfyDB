@@ -150,8 +150,8 @@ test( "decrement subtracts amount", async () => {
     }
 });
 
-let ComfyMongo = null;
-let testFinishResolve = null;
+var ComfyMongo = null;
+var testFinishResolve = null;
 beforeAll( () => {
     return new Promise( ( resolve, reject ) => {
         ComfyMongo = require( "comfy-mongo" )();
