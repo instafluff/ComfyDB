@@ -10,8 +10,13 @@ It also takes care of the mundane tasks like setting and maintaining `createdAt`
 ```javascript
 await ComfyDB.Store( "user1", { username: "Instafluff", profile: "Comfiest Coder and Mug Chef!", cakes: 0 } );
 await ComfyDB.Get( "user1" );
+await ComfyDB.Delete( "user5" );
 await ComfyDB.Increment( "cakes", { by: 2, where: { username: { equals: "instafluff" } } } );
-await ComfyDB.Search( { sortBy: "createdAt", where: { username: { contains: "fluff" } } } );
+await ComfyDB.Decrement( "cakes", { by: 1, where: { status: { contains: "hungry" } } } );
+await ComfyDB.Search( { sortBy: "createdAt", sort: "desc", limit: 5, start: 10, where: { author: { beginsWith: "instaf" } } }, "blog-posts" );
+await ComfyDB.Decrement( "hitpoints", { by: 30, where: { party: { equals: "A" } } }, "game-stats" );
+await ComfyDB.DeleteAll( { where: { isEnemy: { is: true }, hitpoints: { "<": 0 } } }, "game-stats" );
+await ComfyDB.Count( { where: { text: { contains: "lasagna" } } }, "blog-posts" );
 ```
 
 ## Instafluff ##
