@@ -142,7 +142,7 @@ Defining the search conditions for ComfyDB functions is done by setting up a con
     - Maximum number of results, used for pagination. Defaults to `100`.
   - **start** *(Only in **ComfyDB.Search**)*
     - Starting index for the results, used for pagination. Defaults to `0`.
-  - **by** *(Only in **ComfyDB.Increment** and **ComfyDB.Decrement)*
+  - **by** *(Only in **ComfyDB.Increment** and **ComfyDB.Decrement**)*
     - Amount to increment or decrement the field's value by for all matching data object entries. Defaults to `1`.
   - **where**
     - Refines the search based on values inside the stored data object entries. Defaults to `null`.
