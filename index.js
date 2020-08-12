@@ -63,6 +63,10 @@ let comfyDB = {
 			throw new Error( "Invalid Argument Type" );
         }
         values = values.map( x => ({ ...x, updatedAt: new Date() } ) );
+		// filter createdAt field
+		values.forEach( x => {
+			delete x.createdAt;
+		} );
 
 		let bulkOp = set.initializeUnorderedBulkOp();
 		key.forEach( ( k, i ) => bulkOp.find( { key: k } ).upsert().updateOne( {
