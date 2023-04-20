@@ -2,9 +2,12 @@
   "name": "comfydb",
   "version": "2.0.4",
   "description": "Comfiest Way To Use A Database!",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "start": "node index.js",
+    "clear": "tsc --build --clean",
+    "build": "tsc",
     "test": "jest"
   },
   "repository": {
@@ -39,10 +42,17 @@
   },
   "homepage": "https://github.com/instafluff/ComfyDB#readme",
   "dependencies": {
-    "mongodb": "^3.5.5"
+    "mongodb": "^5.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.1",
     "comfy-mongo": "^1.0.7",
-    "jest": "^25.2.4"
+    "jest": "^25.2.4",
+    "typescript": "^4.9.5"
+  },
+  "config": {
+    "none": {
+      "@types/mongodb": "3.5.5"
+    }
   }
 }

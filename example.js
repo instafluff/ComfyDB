@@ -1,4 +1,4 @@
-const ComfyDB = require( "./index" );
+const ComfyDB = require( "./lib/index" );
 
 async function testComfy() {
     try {

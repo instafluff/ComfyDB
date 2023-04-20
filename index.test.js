@@ -1,4 +1,5 @@
-const ComfyDB = require( "./index" );
+//@ts-check
+const ComfyDB = require( "./lib/index" );
 
 test( "connects to MongoDB", async () => {
 	await ComfyDB.Connect();
