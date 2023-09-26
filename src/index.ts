@@ -154,9 +154,10 @@ const comfyDB = {
 	Delete: function( key: string, collection = "ComfyDefault" ) {
 		return comfyDB.DeleteAll( { key: key }, collection );
 	},
-	DeleteAll: function<T extends mongoDocument>( options: SearchQuery<T> = {}, collection = "ComfyDefault" ) {
+	DeleteAll: function<T extends mongoDocument>( options: SearchQuery<T> | null = {}, collection = "ComfyDefault" ) {
 		if( !comfyDB._DB ) { throw new Error( "No Connection" ); }
 		// check if key is a single string or an array for batch update
+		options ??= {};
 		const set = comfyDB._DB.collection( collection );
 		let search = generateMongoSearchFromObject( options.where );
 		if( options.key ) {

@@ -1,3 +1,4 @@
+//@ts-check
 const ComfyDB = require( "./lib/index" );
 
 async function testComfy() {
@@ -101,6 +102,7 @@ ComfyMongo.on( "error", ( err ) => {
 ComfyMongo.on( "ready", async () => {
     console.log( "[ComfyDB] Ready..." );
     await testComfy();
+    // @ts-expect-error missing definitions for `comfy-mongo`
     ComfyMongo.shutdown();
 });
 ComfyMongo.on( "exit", ( code ) => {
