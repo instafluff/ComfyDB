@@ -1,11 +1,10 @@
 import { Db, Filter, MongoClient, Document as mongoDocument, Sort, WithId, Condition, Collection } from "mongodb";
-import { ConnectionProperties, SearchQuery, WhereClauses } from "./Index";
-import { WhereClause } from "./WhereClause";
+import type { ConnectionProperties, SearchQuery, WhereClauses, WhereClause } from "../types";
 
 const comfyDB = {
 	_mongo: null as null | MongoClient,
 	_DB: null as null | Db,
-	Connect: function( { url = "mongodb://localhost:27017", dbname = "comfyDB", ...options }: ConnectionProperties): Promise<void> {
+	Connect: function( { url = "mongodb://localhost:27017", dbname = "comfyDB", ...options }: ConnectionProperties = {}): Promise<void> {
 		return new Promise( async ( resolve, reject ) => {
 			try {
 				comfyDB._mongo = await MongoClient.connect( url, options );
@@ -233,12 +232,6 @@ function generateMongoSearchFromObject<T extends WithId<mongoDocument>>( where: 
 	if (!where) {
 		return search;
 	}
-	const bee = where["key"];
-	if (bee) {
-		for (const f in bee) {
-			const d = f as keyof WhereClause<typeof bee>;
-		}
-	}
 	let field: keyof T;
 	for ( field in where ) {
 		const item = where[ field ];
@@ -309,7 +302,8 @@ function generateMongoSearchFromObject<T extends WithId<mongoDocument>>( where: 
 				operator = RegExp( `${searchSelector}$`, "i" );
 				break;
 			default:
-				throw new Error( `Unsupported Search Op: ${searchOp}` );
+				const incorrectSignature = searchOp as string;
+				throw new Error( `Unsupported Search Op: ${incorrectSignature}` );
 		}
 		if (operator) {
 			// search[field] was somehow not allowed but this was:
@@ -319,5 +313,4 @@ function generateMongoSearchFromObject<T extends WithId<mongoDocument>>( where: 
 	return search;
 }
 
-export default comfyDB;
-export type { comfyDB };
+export = comfyDB;
