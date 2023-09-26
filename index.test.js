@@ -1,4 +1,5 @@
-const ComfyDB = require( "./index" );
+//@ts-check
+const ComfyDB = require( "./lib/index" );
 
 test( "connects to MongoDB", async () => {
 	await ComfyDB.Connect();
@@ -11,7 +12,7 @@ test( "gets undefined for non-existent values", async () => {
 
 test( "saves and gets values", async () => {
     await ComfyDB.Store( "test", { name: "Instafluff" } );
-    expect( ( await ComfyDB.Get( "test" ) ).name ).toBe( "Instafluff" );
+    expect( ( await ComfyDB.Get( "test" ) )?.name ).toBe( "Instafluff" );
 });
 
 test( "deletes value", async () => {
@@ -21,17 +22,17 @@ test( "deletes value", async () => {
 
 test( "sets _id", async () => {
     await ComfyDB.Store( "identifier", { name: "Instafluff" } );
-    expect( ( await ComfyDB.Get( "identifier" ) )._id ).toBeDefined();
+    expect( ( await ComfyDB.Get( "identifier" ) )?._id ).toBeDefined();
 });
 
 test( "adds createdAt", async () => {
     await ComfyDB.Store( "created", { name: "Instafluff" } );
-    expect( ( await ComfyDB.Get( "created" ) ).createdAt ).toBeDefined();
+    expect( ( await ComfyDB.Get( "created" ) )?.createdAt ).toBeDefined();
 });
 
 test( "adds updatedAt", async () => {
     await ComfyDB.Store( "updated", { name: "Instafluff" } );
-    expect( ( await ComfyDB.Get( "updated" ) ).updatedAt ).toBeDefined();
+    expect( ( await ComfyDB.Get( "updated" ) )?.updatedAt ).toBeDefined();
 });
 
 test( "search returns all results", async () => {
@@ -40,7 +41,7 @@ test( "search returns all results", async () => {
     }
     let results = await ComfyDB.Search();
     for( let i = 0; i < 5; i++ ) {
-        expect( ( await ComfyDB.Get(  `test${i}` ) ).value ).toBe(  `test${i}` );
+        expect( ( await ComfyDB.Get(  `test${i}` ) )?.value ).toBe(  `test${i}` );
     }
 });
 
@@ -110,6 +111,12 @@ test( "count is accurate", async () => {
     expect( result ).toBe( 10 );
 });
 
+/**
+ * @typedef TestValue
+ * @property {string} key
+ * @property {number} value
+ */
+
 test( "increment adds amount", async () => {
     for( let i = 0; i < 10; i++ ) {
         await ComfyDB.Store( `skipincrement${i}`, { value: 5 } );
@@ -117,8 +124,9 @@ test( "increment adds amount", async () => {
     for( let i = 0; i < 5; i++ ) {
         await ComfyDB.Store( `increment${i}`, { value: 5 } );
     }
-    await ComfyDB.Increment( "value", { by: 5, where: { key: { startsWith: "increment" } } } );
-    let results = await ComfyDB.Search( { where: { key: { contains: "increment" } } } );
+    await ComfyDB.Increment( "value", { where: { key: { startsWith: "increment" } }, by: 5, } );
+
+    let results = /** @type {TestValue[]} */ ( await ComfyDB.Search( { where: { key: { contains: "increment" } } } ) );
     expect( results.length ).toBe( 15 );
     for( let i = 0; i < 15; i++ ) {
         if( results[ i ].key.startsWith( "skip" ) ) {
@@ -138,7 +146,7 @@ test( "decrement subtracts amount", async () => {
         await ComfyDB.Store( `decrement${i}`, { value: 5 } );
     }
     await ComfyDB.Decrement( "value", { by: 5, where: { key: { startsWith: "decrement" } } } );
-    let results = await ComfyDB.Search( { where: { key: { contains: "decrement" } } } );
+    let results = /** @type {TestValue[]} */ ( await ComfyDB.Search({ where: { key: { contains: "decrement" } } } ));
     expect( results.length ).toBe( 15 );
     for( let i = 0; i < 15; i++ ) {
         if( results[ i ].key.startsWith( "skip" ) ) {
@@ -163,7 +171,7 @@ beforeAll( () => {
         });
         ComfyMongo.on( "ready", async () => {
             console.log( "[ComfyDB] Ready..." );
-            resolve();
+            resolve(void 0);
         });
         ComfyMongo.on( "exit", ( code ) => {
             console.log( "[ComfyDB] Exit:", code );
